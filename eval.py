@@ -1,7 +1,7 @@
 """
 eval.py
 
-Evaluation script for MovieRecGNN with HR@10 and NDCG@10 visualization.
+Evaluation script for MovieRecGNN with HR@k, NDCG@k, Precision@k, and Recall@k + visualization.
 """
 
 import torch
@@ -12,27 +12,39 @@ from model import MovieRecGNN
 from utils import train_test_split
 
 def hit_rate(preds, true_edges, k):
-    """Compute Hit Rate@k."""
     hits = 0
     users, items = true_edges
     for u, i in zip(users.tolist(), items.tolist()):
-        topk = preds[u][:k]
-        if i in topk:
+        if i in preds[u][:k]:
             hits += 1
     return hits / len(users)
 
 def ndcg(preds, true_edges, k):
-    """Compute NDCG@k."""
     import math
     dcg = 0.0
     users, items = true_edges
     for u, i in zip(users.tolist(), items.tolist()):
-        topk = preds[u][:k]
-        if i in topk:
-            rank = topk.index(i) + 1
+        if i in preds[u][:k]:
+            rank = preds[u][:k].index(i) + 1
             dcg += 1 / math.log2(rank + 1)
     idcg = len(users) * (1 / math.log2(2))
     return dcg / idcg
+
+def precision(preds, true_edges, k):
+    users, items = true_edges
+    correct = 0
+    for u, i in zip(users.tolist(), items.tolist()):
+        if i in preds[u][:k]:
+            correct += 1
+    return correct / (len(users) * k)
+
+def recall(preds, true_edges, k):
+    users, items = true_edges
+    correct = 0
+    for u, i in zip(users.tolist(), items.tolist()):
+        if i in preds[u][:k]:
+            correct += 1
+    return correct / len(users)
 
 def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -45,27 +57,36 @@ def main(args):
     model.load_state_dict(torch.load(args.model_path))
     model.eval()
 
-    # Split edges
+    # Split test edges
     pos_edge = data['user','rates','movie'].edge_index
     _, test_pos = train_test_split(pos_edge, test_ratio=0.2)
     user_emb, movie_emb = model(data)
 
-    # Compute full score matrix and top-k
+    # Prediction scores
     scores = torch.matmul(user_emb, movie_emb.t())
     _, idx = torch.topk(scores, k=args.k, dim=1)
     preds = {u: idx[u].tolist() for u in range(idx.size(0))}
 
+    # Compute metrics
     hr = hit_rate(preds, test_pos, args.k)
     n10 = ndcg(preds, test_pos, args.k)
+    prec = precision(preds, test_pos, args.k)
+    rec = recall(preds, test_pos, args.k)
+
     print(f'HR@{args.k}: {hr:.4f}')
     print(f'NDCG@{args.k}: {n10:.4f}')
+    print(f'Precision@{args.k}: {prec:.4f}')
+    print(f'Recall@{args.k}: {rec:.4f}')
 
-    # === PLOT METRICS ===
+    # === Plot all metrics ===
     metrics = {
         f'HR@{args.k}': hr,
-        f'NDCG@{args.k}': n10
+        f'NDCG@{args.k}': n10,
+        f'Precision@{args.k}': prec,
+        f'Recall@{args.k}': rec
     }
-    plt.figure(figsize=(6, 4))
+
+    plt.figure(figsize=(7, 5))
     plt.bar(metrics.keys(), metrics.values(), color='skyblue')
     plt.title("Evaluation Metrics")
     plt.ylabel("Score")
