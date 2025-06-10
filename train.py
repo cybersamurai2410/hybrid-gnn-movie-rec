@@ -1,11 +1,12 @@
 """
 train.py
 
-Training script for MovieRecGNN.
+Training script for MovieRecGNN with training loss visualization.
 """
 
 import torch
 import argparse
+import matplotlib.pyplot as plt
 from build_graph import build_graph
 from model import MovieRecGNN
 from utils import negative_sampling, train_test_split
@@ -29,6 +30,7 @@ def main(args):
                                  weight_decay=args.weight_decay)
 
     # Training loop
+    losses = []
     for epoch in range(1, args.epochs+1):
         model.train()
         optimizer.zero_grad()
@@ -38,12 +40,24 @@ def main(args):
         loss.backward()
         optimizer.step()
 
+        losses.append(loss.item())
         if epoch % args.log_every == 0:
             print(f'Epoch {epoch}, Loss: {loss.item():.4f}')
 
     # Save model
     torch.save(model.state_dict(), args.save_path)
     print(f'Model saved to {args.save_path}')
+
+    # === PLOT LOSS CURVE ===
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, args.epochs+1), losses, marker='o')
+    plt.title("Training Loss over Epochs")
+    plt.xlabel("Epoch")
+    plt.ylabel("BPR Loss")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("training_loss.png")
+    print("Saved training_loss.png")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
