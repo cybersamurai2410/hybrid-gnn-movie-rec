@@ -40,24 +40,24 @@ MovieRecGNN is a graph-based recommendation system that uses a hybrid Graph Neur
 
 ```
 python build_graph.py --imdb_folder data/imdb --interactions data/ml-1m/ratings.dat
-# Produces movie_rec_graph.pt
 ```
+*Outputs movie_rec_graph.pt*
 
 ### 2. Train the Model
 
 ```
 python train.py --imdb_folder data/imdb --interactions data/ml-1m/ratings.dat \
                 --epochs 50 --save_path model.pt
-# Outputs training_loss.png and model.pt
 ```
+*Outputs training_loss.png and model.pt*
 
 ### 3. Evaluate the Model
 
 ```
 python eval.py --imdb_folder data/imdb --interactions data/ml-1m/ratings.dat \
                --model_path model.pt --k 10
-# Outputs evaluation_metrics.png and prints HR@10, NDCG@10, Precision@10, Recall@10
 ```
+*Outputs evaluation_metrics.png and prints HR@10, NDCG@10, Precision@10, Recall@10*
 
 ---
 
