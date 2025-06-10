@@ -1,6 +1,4 @@
 """
-utils.py
-
 Utility functions for negative sampling and train/test split.
 """
 
