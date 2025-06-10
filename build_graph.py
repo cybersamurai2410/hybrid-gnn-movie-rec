@@ -1,6 +1,4 @@
 """
-build_graph.py
-
 Script to load IMDb data and construct a heterogeneous graph for MovieRecGNN.
 Nodes: 'user', 'movie', 'entity'
 Edges: user->movie, movie->entity.
@@ -55,9 +53,17 @@ def build_graph(imdb_folder, interactions_file=None):
     num_entities = len(entity_ids)
     data['entity'].x = torch.eye(num_entities, dtype=torch.float)
 
-    # User nodes and interactions (if provided)
+    # User nodes and interactions 
     if interactions_file:
-        interactions = pd.read_csv(interactions_file)
+        # MovieLens 1M has '::' separator with no headers
+        interactions = pd.read_csv(
+            interactions_file,
+            sep='::',
+            engine='python',
+            names=['user_id', 'movie_id', 'rating', 'timestamp']
+        )
+        interactions = interactions[interactions['rating'] >= 4]  # Liked movies with ratings >= 4 
+    
         user_ids = interactions['user_id'].unique().tolist()
         user2idx = {uid: idx for idx, uid in enumerate(user_ids)}
         data['user'].x = torch.ones((len(user_ids), 1), dtype=torch.float)
@@ -83,7 +89,7 @@ def build_graph(imdb_folder, interactions_file=None):
 
 if __name__ == '__main__':
     imdb_folder = '../data/imdb'
-    interactions_file = None  # e.g., '../data/ml-100k/ua.base'
+    interactions_file = '../data/ml-1m/ratings.dat'
     data = build_graph(imdb_folder, interactions_file)
     torch.save(data, 'movie_rec_graph.pt')
     print('HeteroData graph saved to movie_rec_graph.pt')
