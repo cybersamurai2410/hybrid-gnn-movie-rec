@@ -1,6 +1,4 @@
 """
-eval.py
-
 Evaluation script for MovieRecGNN with HR@k, NDCG@k, Precision@k, and Recall@k + visualization.
 """
 
@@ -78,7 +76,7 @@ def main(args):
     print(f'Precision@{args.k}: {prec:.4f}')
     print(f'Recall@{args.k}: {rec:.4f}')
 
-    # === Plot all metrics ===
+    # Plot metrics
     metrics = {
         f'HR@{args.k}': hr,
         f'NDCG@{args.k}': n10,
