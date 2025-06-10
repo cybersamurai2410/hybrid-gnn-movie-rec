@@ -1,11 +1,12 @@
 """
 eval.py
 
-Evaluation script for MovieRecGNN; computes HR@k and NDCG@k.
+Evaluation script for MovieRecGNN with HR@10 and NDCG@10 visualization.
 """
 
 import torch
 import argparse
+import matplotlib.pyplot as plt
 from build_graph import build_graph
 from model import MovieRecGNN
 from utils import train_test_split
@@ -58,6 +59,20 @@ def main(args):
     n10 = ndcg(preds, test_pos, args.k)
     print(f'HR@{args.k}: {hr:.4f}')
     print(f'NDCG@{args.k}: {n10:.4f}')
+
+    # === PLOT METRICS ===
+    metrics = {
+        f'HR@{args.k}': hr,
+        f'NDCG@{args.k}': n10
+    }
+    plt.figure(figsize=(6, 4))
+    plt.bar(metrics.keys(), metrics.values(), color='skyblue')
+    plt.title("Evaluation Metrics")
+    plt.ylabel("Score")
+    plt.ylim(0, 1)
+    plt.tight_layout()
+    plt.savefig("evaluation_metrics.png")
+    print("Saved evaluation_metrics.png")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
