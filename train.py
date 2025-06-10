@@ -1,6 +1,4 @@
 """
-train.py
-
 Training script for MovieRecGNN with training loss visualization.
 """
 
@@ -48,7 +46,7 @@ def main(args):
     torch.save(model.state_dict(), args.save_path)
     print(f'Model saved to {args.save_path}')
 
-    # === PLOT LOSS CURVE ===
+    # Plot loss curve
     plt.figure(figsize=(8, 5))
     plt.plot(range(1, args.epochs+1), losses, marker='o')
     plt.title("Training Loss over Epochs")
