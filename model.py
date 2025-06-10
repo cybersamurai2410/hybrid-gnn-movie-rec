@@ -1,6 +1,4 @@
 """
-model.py
-
 Defines the NGCF + R-GCN hybrid model for MovieRecGNN using PyTorch Geometric.
 """
 
